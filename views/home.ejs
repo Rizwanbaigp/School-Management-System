@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>School Management System</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <nav>
+        <a href="/">Home</a> |
+        <a href="/students">View Students</a> |
+        <a href="/students/add">Add Student</a> |
+        
+        <% if (loggedIn) { %> <!-- Only show logout if logged in -->
+            <a href="/logout">Logout</a> |
+        <% } %>
+    </nav>
+
+    <h1>Welcome to School Management System</h1>
+</body>
+</html>

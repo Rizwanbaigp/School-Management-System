@@ -1,0 +1,31 @@
+<!-- viewAttendance.ejs -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Student Attendance</title>
+</head>
+<body>
+    <h1>Attendance for <%= student.name %></h1>
+
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% student.attendance.forEach(record => { %>
+                <tr>
+                    <td><%= record.date.toDateString() %></td>
+                    <td><%= record.status %></td>
+                </tr>
+            <% }) %>
+        </tbody>
+    </table>
+
+    <a href="/students">Back to Students List</a> |
+    <a href="/logout">Logout</a>
+</body>
+</html>

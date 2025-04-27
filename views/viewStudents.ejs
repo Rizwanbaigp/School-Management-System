@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>View Students</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <nav>
+        <a href="/">Home</a> |
+        <a href="/students">View Students</a> |
+        <a href="/students/add">Add Student</a> |
+        <% if (loggedIn) { %> <!-- Only show logout if logged in -->
+            <a href="/logout">Logout</a> |
+        <% } %>
+    </nav>
+
+    <h1>All Students</h1>
+
+    <!-- Search Form -->
+    <form method="GET" action="/students">
+        <input type="text" name="search" placeholder="Search by name or roll number" value="<%= searchQuery %>">
+        <button type="submit">Search</button>
+    </form>
+
+    <table border="1" align="center" cellpadding="10">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Roll Number</th>
+                <th>Class</th>
+                <th>Section</th>
+                <th>Date of Birth</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% students.forEach(student => { %>
+                <tr>
+                    <td><%= student.name %></td>
+                    <td><%= student.rollNumber %></td>
+                    <td><%= student.class %></td>
+                    <td><%= student.section %></td>
+                    <td><%= student.dateOfBirth.toDateString() %></td>
+                    <td><a href="/students/attendance/view/<%= student._id %>">View Attendance</a></td>
+
+                    <td>
+                        <!-- Delete Button -->
+                        <form action="/students/delete/<%= student._id %>" method="POST">
+                            <button type="submit">Delete</button>
+                        </form>
+                        <!-- Update Button -->
+                        <a href="/students/update/<%= student._id %>">
+                            <button>Update</button>
+                            <a href="/students/attendance/<%= student._id %>">
+                                <button>Mark Attendance</button>
+                            </a>
+                        </a>
+                    </td>
+                </tr>
+            <% }) %>
+        </tbody>
+    </table>
+
+    <% if (students.length === 0) { %>
+        <p>No students found</p>
+    <% } %>
+
+    <!-- Pagination Controls -->
+    <div class="pagination">
+        <% if (currentPage > 1) { %>
+            <a href="/students?page=<%= currentPage - 1 %>&search=<%= searchQuery %>">Previous</a>
+        <% } %>
+        <% for (let i = 1; i <= totalPages; i++) { %>
+            <a href="/students?page=<%= i %>&search=<%= searchQuery %>" 
+                class="<%= i === currentPage ? 'active' : '' %>">
+                <%= i %>
+            </a>
+        <% } %>
+        <% if (currentPage < totalPages) { %>
+            <a href="/students?page=<%= currentPage + 1 %>&search=<%= searchQuery %>">Next</a>
+        <% } %>
+    </div>
+
+</body>
+</html>
