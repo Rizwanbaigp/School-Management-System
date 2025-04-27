@@ -33,7 +33,7 @@ function isAdmin(req, res, next) {
 }
 
 // MongoDB Connect
-mongoose.connect('mongodb://localhost:27017/schoolDB', {
+mongoose.connect('mongodb+srv://admin:admin123@student.oalla5p.mongodb.net/?retryWrites=true&w=majority&appName=Student', {
     useNewUrlParser: true,
     useUnifiedTopology: true
 }).then(() => {
