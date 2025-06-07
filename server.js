@@ -137,6 +137,20 @@ app.post('/students/add', (req, res) => {
 });
 
 // Show Update Student Form (GET)
+// Show Update Form (GET)
+app.get('/students/update/:id', async (req, res) => {
+    try {
+        const student = await Student.findById(req.params.id);
+        res.render('updateStudent', {
+            student,
+            loggedIn: req.session.loggedIn
+        });
+    } catch (err) {
+        console.log(err);
+        res.send('Error loading update form');
+    }
+});
+
 // Show Mark Attendance Page for Student (GET)
 app.get('/students/attendance/:id', async (req, res) => {
     try {
