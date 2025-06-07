@@ -22,6 +22,9 @@
         <input type="text" name="search" placeholder="Search by name or roll number" value="<%= searchQuery %>">
         <button type="submit">Search</button>
     </form>
+    
+<a href="/students/export?class=<%= selectedClass || '' %>" class="btn btn-success" style="margin-left: 20px;">Download Excel</a>
+
 
     <table border="1" align="center" cellpadding="10">
         <thead>

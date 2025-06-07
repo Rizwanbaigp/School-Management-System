@@ -4,6 +4,8 @@ const bodyParser = require('body-parser');
 const path = require('path');
 const Student = require('./models/Student');
 const session = require('express-session');
+const ExcelJS = require('exceljs');
+
 
 const app = express();
 app.use(express.static('public'));
@@ -69,44 +71,113 @@ app.post('/login', (req, res) => {
 // Students Page (GET)
 // Students Page with Search Functionality
 // Students Page with Pagination
-app.get('/students', (req, res) => {
-    const searchQuery = req.query.search || ''; // Get search query from URL
-    const page = parseInt(req.query.page) || 1; // Get current page or set to 1 if not provided
-    const limit = 5; // Number of records per page
-    const skip = (page - 1) * limit; // Calculate how many records to skip
+app.get('/students', async (req, res) => {
+    const searchQuery = req.query.search || '';
+    const selectedClass = req.query.class || '';
+    const page = parseInt(req.query.page) || 1;
+    const limit = 5;
+    const skip = (page - 1) * limit;
 
-    // Find students based on search query (name, rollNumber, etc.)
-    Student.find({
+    let filter = {
         $or: [
-            { name: { $regex: searchQuery, $options: 'i' } }, // Case-insensitive search by name
+            { name: { $regex: searchQuery, $options: 'i' } },
             { rollNumber: { $regex: searchQuery, $options: 'i' } }
         ]
-    })
-    .skip(skip)
-    .limit(limit) // Limit results per page
-    .then((students) => {
-        // Get total number of students for pagination
-        Student.countDocuments({
-            $or: [
-                { name: { $regex: searchQuery, $options: 'i' } },
-                { rollNumber: { $regex: searchQuery, $options: 'i' } }
-            ]
-        }).then(total => {
-            const totalPages = Math.ceil(total / limit); // Calculate total number of pages
-            res.render('viewStudents', {
-                students,
-                searchQuery,
-                currentPage: page,
-                totalPages,
-                loggedIn: req.session.loggedIn
+    };
+
+    if (selectedClass) {
+        filter.class = selectedClass;
+    }
+
+    try {
+        const students = await Student.find(filter).skip(skip).limit(limit);
+        const total = await Student.countDocuments(filter);
+        const totalPages = Math.ceil(total / limit);
+
+        res.render('viewStudents', {
+            students,
+            searchQuery,
+            selectedClass,
+            currentPage: page,
+            totalPages,
+            loggedIn: req.session.loggedIn
+        });
+    } catch (err) {
+        console.log(err);
+        res.send("Error loading students");
+    }
+});
+
+
+
+app.get('/students/export', async (req, res) => {
+    const selectedClass = req.query.class || '';
+
+    let filter = {};
+    if (selectedClass) {
+        filter.class = selectedClass;
+    }
+
+    try {
+        const students = await Student.find(filter);
+
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet('Students');
+
+        // Columns
+        worksheet.columns = [
+            { header: 'Name', key: 'name', width: 20 },
+            { header: 'Father Name', key: 'fatherName', width: 20 },
+            { header: 'Mother Name', key: 'motherName', width: 20 },
+            { header: 'Class', key: 'class', width: 10 },
+            { header: 'DOB', key: 'dateOfBirth', width: 15 },
+            { header: 'Mobile No', key: 'mobileNumber', width: 15 },
+            { header: 'Place', key: 'place', width: 15 },
+            { header: 'Aadhar No', key: 'aadharNumber', width: 15 },
+            { header: 'SR. No', key: 'srNumber', width: 10 },
+            { header: 'Samagra ID', key: 'samagraId', width: 15 },
+            { header: 'Gender', key: 'gender', width: 10 },
+            { header: 'Category', key: 'category', width: 10 },
+            { header: 'Date of Admission', key: 'dateOfAdmission', width: 15 },
+        ];
+
+        // Rows
+        students.forEach(student => {
+            worksheet.addRow({
+                name: student.name,
+                fatherName: student.fatherName,
+                motherName: student.motherName,
+                class: student.class,
+                dateOfBirth: student.dateOfBirth ? student.dateOfBirth.toISOString().substring(0,10) : '',
+                mobileNumber: student.mobileNumber,
+                place: student.place,
+                aadharNumber: student.aadharNumber,
+                srNumber: student.srNumber,
+                samagraId: student.samagraId,
+                gender: student.gender,
+                category: student.category,
+                dateOfAdmission: student.dateOfAdmission ? student.dateOfAdmission.toISOString().substring(0,10) : '',
             });
         });
-    })
-    .catch((err) => {
+
+        res.setHeader(
+            'Content-Type',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        );
+        res.setHeader(
+            'Content-Disposition',
+            `attachment; filename=students_${selectedClass || 'all'}.xlsx`
+        );
+
+        await workbook.xlsx.write(res);
+        res.end();
+
+    } catch (err) {
         console.log(err);
-        res.send('Error fetching students');
-    });
+        res.send("Error generating Excel file");
+    }
 });
+
 
 
 
