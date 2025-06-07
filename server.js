@@ -119,10 +119,20 @@ app.get('/students/add', (req, res) => {
 app.post('/students/add', (req, res) => {
     const newStudent = new Student({
         name: req.body.name,
-        rollNumber: req.body.rollNumber,
+        fatherName: req.body.fatherName,
+        motherName: req.body.motherName,
         class: req.body.class,
-        section: req.body.section,
-        dateOfBirth: req.body.dateOfBirth
+        dateOfBirth: req.body.dateOfBirth,
+        mobileNumber: req.body.mobileNumber,
+        place: req.body.place,
+        aadharNumber: req.body.aadharNumber,
+        srNumber: req.body.srNumber,
+        samagraId: req.body.samagraId,
+        gender: req.body.gender,
+        category: req.body.category,
+        dateOfAdmission: req.body.dateOfAdmission,
+        rollNumber: req.body.rollNumber,
+        section: req.body.section
     });
 
     newStudent.save()
@@ -135,6 +145,7 @@ app.post('/students/add', (req, res) => {
             res.send('Error saving student');
         });
 });
+
 
 // Show Update Student Form (GET)
 // Show Update Form (GET)
@@ -187,6 +198,38 @@ app.get('/students/attendance/view/:id', async (req, res) => {
     }
 });
 
+// fees-recipt
+
+app.get('/fees-receipt', isAdmin, (req, res) => {
+    res.render('feesReceiptForm', { loggedIn: req.session.loggedIn });
+});
+
+// fees receipt post
+app.post('/fees-receipt/generate', isAdmin, (req, res) => {
+    const {
+        srNo, studentName, fatherName, class: studentClass,
+        date, session, tuitionFees, transportFees, discount
+    } = req.body;
+
+    const total = parseFloat(tuitionFees || 0) + parseFloat(transportFees || 0);
+    const totalAmount = total - parseFloat(discount || 0);
+
+    res.render('receipt', {
+        srNo,
+        studentName,
+        fatherName,
+        studentClass,
+        date,
+        session,
+        tuitionFees,
+        transportFees,
+        discount,
+        total,
+        totalAmount,
+        loggedIn: req.session.loggedIn
+    });
+});
+
 
 // Mark Attendance (POST)
 app.post('/students/attendance/:id', async (req, res) => {
@@ -213,18 +256,29 @@ app.post('/students/update/:id', async (req, res) => {
     try {
         await Student.findByIdAndUpdate(req.params.id, {
             name: req.body.name,
-            rollNumber: req.body.rollNumber,
+            fatherName: req.body.fatherName,
+            motherName: req.body.motherName,
             class: req.body.class,
-            section: req.body.section,
-            dateOfBirth: req.body.dateOfBirth
+            dateOfBirth: req.body.dateOfBirth,
+            mobileNumber: req.body.mobileNumber,
+            place: req.body.place,
+            aadharNumber: req.body.aadharNumber,
+            srNumber: req.body.srNumber,
+            samagraId: req.body.samagraId,
+            gender: req.body.gender,
+            category: req.body.category,
+            dateOfAdmission: req.body.dateOfAdmission,
+            rollNumber: req.body.rollNumber,
+            section: req.body.section
         });
         console.log('Student updated successfully!');
-        res.redirect('/students');  // Redirect to view students page
+        res.redirect('/students');
     } catch (err) {
         console.log(err);
         res.send('Error updating student');
     }
 });
+
 
 // Delete Student (POST)
 app.post('/students/delete/:id', isAdmin, async (req, res) => {

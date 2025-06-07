@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Generate Fees Receipt</title>
+    <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+    <h1>Generate Fees Receipt</h1>
+
+    <form action="/fees-receipt/generate" method="POST">
+        <label>SR. No:</label>
+        <input type="text" name="srNo" required><br>
+
+        <label>Student Name:</label>
+        <input type="text" name="studentName" required><br>
+
+        <label>Father Name:</label>
+        <input type="text" name="fatherName" required><br>
+
+        <label>Class:</label>
+        <input type="text" name="class" required><br>
+
+        <label>Date:</label>
+        <input type="date" name="date" required><br>
+
+        <label>Session:</label>
+        <input type="text" name="session" required><br>
+
+        <label>Tuition Fees:</label>
+        <input type="number" name="tuitionFees" required><br>
+
+        <label>Transport Fees:</label>
+        <input type="number" name="transportFees"><br>
+
+        <label>Discount:</label>
+        <input type="number" name="discount"><br>
+
+        <button type="submit">Generate Receipt</button>
+    </form>
+</body>
+</html>

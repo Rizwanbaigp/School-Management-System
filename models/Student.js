@@ -1,19 +1,27 @@
 const mongoose = require('mongoose');
 
-const studentSchema = new mongoose.Schema({
-    name: String,
-    rollNumber: String,
-    class: String,
-    section: String,
-    dateOfBirth: Date,
-    // Adding an attendance field
-    attendance: [{
-        date: { type: Date, default: Date.now },
-        status: { type: String, enum: ['Present', 'Absent', 'Excused'], default: 'Absent' }
-    }],
-    
+const attendanceSchema = new mongoose.Schema({
+    date: Date,
+    status: String  // 'present' or 'absent'
 });
 
-const Student = mongoose.model('Student', studentSchema);
+const studentSchema = new mongoose.Schema({
+    name: String,
+    fatherName: String,
+    motherName: String,
+    class: String,
+    dateOfBirth: { type: Date },
+    mobileNumber: String,
+    place: String,
+    aadharNumber: String,
+    srNumber: String,
+    samagraId: String,
+    gender: String,
+    category: String,
+    dateOfAdmission: { type: Date },
+    rollNumber: String,
+    section: String,
+    attendance: [attendanceSchema]  // for attendance records
+});
 
-module.exports = Student;
+module.exports = mongoose.model('Student', studentSchema);

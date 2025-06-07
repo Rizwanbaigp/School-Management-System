@@ -19,11 +19,48 @@
     <h1>Update Student</h1>
 
     <form action="/students/update/<%= student._id %>" method="POST">
-        <input type="text" name="name" value="<%= student.name %>" required><br><br>
-        <input type="number" name="rollNumber" value="<%= student.rollNumber %>" required><br><br>
-        <input type="text" name="class" value="<%= student.class %>" required><br><br>
-        <input type="text" name="section" value="<%= student.section %>" required><br><br>
-        <input type="date" name="dateOfBirth" value="<%= student.dateOfBirth.toISOString().split('T')[0] %>" required><br><br>
+<label>Name:</label>
+<input type="text" name="name" value="<%= student.name %>" required />
+
+<label>Father Name:</label>
+<input type="text" name="fatherName" value="<%= student.fatherName %>" required />
+
+<label>Mother Name:</label>
+<input type="text" name="motherName" value="<%= student.motherName %>" required />
+
+<label>Class:</label>
+<input type="text" name="class" value="<%= student.class %>" required />
+
+<label>Date of Birth:</label>
+<input type="date" name="dateOfBirth" value="<%= student.dateOfBirth ? new Date(student.dateOfBirth).toISOString().substring(0,10) : '' %>" required />
+
+<label>Mobile Number:</label>
+<input type="text" name="mobileNumber" value="<%= student.mobileNumber %>" required />
+
+<label>Place:</label>
+<input type="text" name="place" value="<%= student.place %>" required />
+
+<label>Aadhar Number:</label>
+<input type="text" name="aadharNumber" value="<%= student.aadharNumber %>" required />
+
+<label>SR No:</label>
+<input type="text" name="srNumber" value="<%= student.srNumber %>" required />
+
+<label>Samagra ID:</label>
+<input type="text" name="samagraId" value="<%= student.samagraId %>" required />
+
+<label>Gender:</label>
+<select name="gender" required>
+  <option value="Male" <%= student.gender === 'Male' ? 'selected' : '' %>>Male</option>
+  <option value="Female" <%= student.gender === 'Female' ? 'selected' : '' %>>Female</option>
+  <option value="Other" <%= student.gender === 'Other' ? 'selected' : '' %>>Other</option>
+</select>
+
+<label>Category:</label>
+<input type="text" name="category" value="<%= student.category %>" required />
+
+<label>Date of Admission:</label>
+<input type="date" name="dateOfAdmission" value="<%= student.dateOfAdmission ? new Date(student.dateOfAdmission).toISOString().substring(0,10) : '' %>" required />
         <button type="submit">Update Student</button>
     </form>
 

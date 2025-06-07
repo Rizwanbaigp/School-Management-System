@@ -26,21 +26,38 @@
     <table border="1" align="center" cellpadding="10">
         <thead>
             <tr>
-                <th>Name</th>
-                <th>Roll Number</th>
-                <th>Class</th>
-                <th>Section</th>
-                <th>Date of Birth</th>
+<th>Name</th>
+<th>Father Name</th>
+<th>Mother Name</th>
+<th>Class</th>
+<th>DOB</th>
+<th>Mobile</th>
+<th>Place</th>
+<th>Aadhar No</th>
+<th>SR No</th>
+<th>Samagra ID</th>
+<th>Gender</th>
+<th>Category</th>
+<th>Date of Admission</th>
             </tr>
         </thead>
         <tbody>
             <% students.forEach(student => { %>
                 <tr>
                     <td><%= student.name %></td>
-                    <td><%= student.rollNumber %></td>
-                    <td><%= student.class %></td>
-                    <td><%= student.section %></td>
-                    <td><%= student.dateOfBirth.toDateString() %></td>
+<td><%= student.fatherName %></td>
+<td><%= student.motherName %></td>
+<td><%= student.class %></td>
+<td><%= student.dateOfBirth ? new Date(student.dateOfBirth).toISOString().substring(0,10) : '' %></td>
+<td><%= student.mobileNumber %></td>
+<td><%= student.place %></td>
+<td><%= student.aadharNumber %></td>
+<td><%= student.srNumber %></td>
+<td><%= student.samagraId %></td>
+<td><%= student.gender %></td>
+<td><%= student.category %></td>
+<td><%= student.dateOfAdmission ? new Date(student.dateOfAdmission).toISOString().substring(0,10) : '' %></td>
+
                     <td><a href="/students/attendance/view/<%= student._id %>">View Attendance</a></td>
 
                     <td>
