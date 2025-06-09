@@ -21,6 +21,9 @@ const studentSchema = new mongoose.Schema({
     dateOfAdmission: { type: Date },
     rollNumber: String,
     section: String,
+    session: String, 
+    fees: Number,
+    remainingFees: Number,    
     attendance: [attendanceSchema]  // for attendance records
 });
 

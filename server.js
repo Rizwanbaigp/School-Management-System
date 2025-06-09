@@ -71,41 +71,48 @@ app.post('/login', (req, res) => {
 // Students Page (GET)
 // Students Page with Search Functionality
 // Students Page with Pagination
-app.get('/students', async (req, res) => {
+app.get('/students', (req, res) => {
     const searchQuery = req.query.search || '';
-    const selectedClass = req.query.class || '';
     const page = parseInt(req.query.page) || 1;
     const limit = 5;
     const skip = (page - 1) * limit;
+    const filterClass = req.query.filterClass || '';
 
-    let filter = {
-        $or: [
-            { name: { $regex: searchQuery, $options: 'i' } },
-            { rollNumber: { $regex: searchQuery, $options: 'i' } }
+    const filter = {
+        $and: [
+            {
+                $or: [
+                    { name: { $regex: searchQuery, $options: 'i' } },
+                    { rollNumber: { $regex: searchQuery, $options: 'i' } }
+                ]
+            }
         ]
     };
 
-    if (selectedClass) {
-        filter.class = selectedClass;
+    if (filterClass) {
+        filter.$and.push({ class: filterClass });
     }
 
-    try {
-        const students = await Student.find(filter).skip(skip).limit(limit);
-        const total = await Student.countDocuments(filter);
-        const totalPages = Math.ceil(total / limit);
-
-        res.render('viewStudents', {
-            students,
-            searchQuery,
-            selectedClass,
-            currentPage: page,
-            totalPages,
-            loggedIn: req.session.loggedIn
+    Student.find(filter)
+        .skip(skip)
+        .limit(limit)
+        .then((students) => {
+            Student.countDocuments(filter).then(total => {
+                const totalPages = Math.ceil(total / limit);
+                res.render('viewStudents', {
+                    students,
+                    searchQuery,
+                    currentPage: page,
+                    totalPages,
+                    filterClass,
+                    loggedIn: req.session.loggedIn
+                });
+            });
+        })
+        .catch((err) => {
+            console.log(err);
+            res.send('Error fetching students');
         });
-    } catch (err) {
-        console.log(err);
-        res.send("Error loading students");
-    }
 });
 
 
@@ -203,6 +210,8 @@ app.post('/students/add', (req, res) => {
         category: req.body.category,
         dateOfAdmission: req.body.dateOfAdmission,
         rollNumber: req.body.rollNumber,
+        session: req.body.session,     
+        fees: req.body.fees,
         section: req.body.section
     });
 
@@ -340,7 +349,9 @@ app.post('/students/update/:id', async (req, res) => {
             category: req.body.category,
             dateOfAdmission: req.body.dateOfAdmission,
             rollNumber: req.body.rollNumber,
-            section: req.body.section
+            section: req.body.section,
+            session: req.body.session,   
+            fees: req.body.fees
         });
         console.log('Student updated successfully!');
         res.redirect('/students');

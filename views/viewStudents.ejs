@@ -20,10 +20,22 @@
     <!-- Search Form -->
     <form method="GET" action="/students">
         <input type="text" name="search" placeholder="Search by name or roll number" value="<%= searchQuery %>">
+            <select name="filterClass">
+        <option value="">All Classes</option>
+        <option value="PC" <%= filterClass === 'PC' ? 'selected' : '' %>>PC</option>
+        <option value="NUR" <%= filterClass === 'NUR' ? 'selected' : '' %>>NUR</option>
+        <option value="LKG" <%= filterClass === 'LKG' ? 'selected' : '' %>>LKG</option>
+        <option value="UKG" <%= filterClass === 'UKG' ? 'selected' : '' %>>UKG</option>
+        <% for(let i = 1; i <= 8; i++) { %>
+            <option value="<%= i %>" <%= filterClass == i.toString() ? 'selected' : '' %>>Class <%= i %></option>
+        <% } %>
+    </select>
+
+    <button type="submit">Filter</button>
         <button type="submit">Search</button>
     </form>
     
-<a href="/students/export?class=<%= selectedClass || '' %>" class="btn btn-success" style="margin-left: 20px;">Download Excel</a>
+<a href="/students/export?class=<%= filterClass || '' %>" class="btn btn-success" style="margin-left: 20px;">Download Excel</a>
 
 
     <table border="1" align="center" cellpadding="10">
@@ -42,6 +54,8 @@
 <th>Gender</th>
 <th>Category</th>
 <th>Date of Admission</th>
+<th>Session</th>
+<th>Fees</th>
             </tr>
         </thead>
         <tbody>
@@ -60,20 +74,21 @@
 <td><%= student.gender %></td>
 <td><%= student.category %></td>
 <td><%= student.dateOfAdmission ? new Date(student.dateOfAdmission).toISOString().substring(0,10) : '' %></td>
-
-                    <td><a href="/students/attendance/view/<%= student._id %>">View Attendance</a></td>
+<td><%= student.session %></td>
+<td><%= student.fees %></td>
+                    <!-- <td><a href="/students/attendance/view/<%= student._id %>">View Attendance</a></td> -->
 
                     <td>
                         <!-- Delete Button -->
                         <form action="/students/delete/<%= student._id %>" method="POST">
-                            <button type="submit">Delete</button>
+                            <button type="submit" id="del">Delete</button>
                         </form>
                         <!-- Update Button -->
                         <a href="/students/update/<%= student._id %>">
                             <button>Update</button>
-                            <a href="/students/attendance/<%= student._id %>">
+                            <!-- <a href="/students/attendance/<%= student._id %>">
                                 <button>Mark Attendance</button>
-                            </a>
+                            </a> -->
                         </a>
                     </td>
                 </tr>

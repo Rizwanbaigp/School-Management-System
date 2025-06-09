@@ -49,6 +49,10 @@ input[type="text"], input[type="password"], input[type="number"], input[type="da
     border: 1px solid #ccc;
     box-sizing: border-box;
 }
+#del{
+    padding: 10px;
+    margin: 0;
+}
 
 button {
     background-color: #333;
@@ -62,7 +66,7 @@ button:hover {
 
 /* Table Styles */
 table {
-    width: 80%;
+    width: 100%;
     margin: 20px auto;
     border-collapse: collapse;
 }
@@ -72,9 +76,11 @@ table, th, td {
 }
 
 th, td {
-    padding: 10px;
+    padding: 5px;
     text-align: center;
 }
+
+
 
 th {
     background-color: #333;

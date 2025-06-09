@@ -59,6 +59,12 @@
 <label>Category:</label>
 <input type="text" name="category" value="<%= student.category %>" required />
 
+<label>Session:</label>
+<input type="text" name="session" value="<%= student.session %>" required />
+
+<label>Fees:</label>
+<input type="number" name="fees" value="<%= student.fees %>" required />
+
 <label>Date of Admission:</label>
 <input type="date" name="dateOfAdmission" value="<%= student.dateOfAdmission ? new Date(student.dateOfAdmission).toISOString().substring(0,10) : '' %>" required />
         <button type="submit">Update Student</button>
