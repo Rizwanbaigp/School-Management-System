@@ -400,7 +400,7 @@ app.post('/students/update/:id', async (req, res) => {
             rollNumber: req.body.rollNumber,
             section: req.body.section,
             session: req.body.session,   
-            fees: req.body.fees
+            remainingFees: req.body.fees
         });
         console.log('Student updated successfully!');
         res.redirect('/students');
