@@ -6,26 +6,37 @@
     <link rel="stylesheet" href="/styles.css" />
 </head>
 <body>
-        <nav>
-        <a href="/">Home</a>
+    <nav>
+        <a href="/">Home</a> |
+        <a href="/students">View Students</a>
     </nav>
+
     <h1>Generate Fees Receipt</h1>
 
     <form action="/fees-receipt/generate" method="POST">
+        <label>Select Student:</label>
+        <select name="studentId" onchange="fetchStudentDetails(this.value)" required>
+            <option value="">-- Select Student --</option>
+            <% students.forEach(student => { %>
+                <option value="<%= student._id %>"><%= student.name %> - Class <%= student.class %></option>
+            <% }); %>
+        </select>
+        <br><br>
+
         <label>SR. No:</label>
-        <input type="text" name="srNo" required><br>
+        <input type="text" name="srNo" required readonly><br>
 
         <label>Student Name:</label>
-        <input type="text" name="studentName" required><br>
+        <input type="text" name="studentName" required readonly><br>
 
         <label>Father Name:</label>
-        <input type="text" name="fatherName" required><br>
+        <input type="text" name="fatherName" required readonly><br>
 
         <label>Class:</label>
-        <input type="text" name="class" required><br>
+        <input type="text" name="class" required readonly><br>
 
         <label>Date:</label>
-        <input type="date" name="date" required><br>
+        <input type="date" name="date" required value="<%= new Date().toISOString().substring(0,10) %>"><br>
 
         <label>Session:</label>
         <input type="text" name="session" required><br>
@@ -41,5 +52,24 @@
 
         <button type="submit">Generate Receipt</button>
     </form>
+    <script>
+    async function fetchStudentDetails(id) {
+        if (!id) return;
+        try {
+            const res = await fetch(`/api/student-details/${id}`);
+            const data = await res.json();
+
+            document.querySelector('input[name="studentName"]').value = data.name || '';
+            document.querySelector('input[name="fatherName"]').value = data.fatherName || '';
+            document.querySelector('input[name="srNo"]').value = data.srNumber || '';
+            document.querySelector('input[name="class"]').value = data.class || '';
+            document.querySelector('input[name="session"]').value = data.session || '';
+            document.querySelector('input[name="tuitionFees"]').value = data.remainingFees || 0;
+        } catch (error) {
+            console.error('Error fetching student:', error);
+            alert('Unable to fetch student details');
+        }
+    }
+</script>
 </body>
 </html>

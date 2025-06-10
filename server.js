@@ -5,7 +5,7 @@ const path = require('path');
 const Student = require('./models/Student');
 const session = require('express-session');
 const ExcelJS = require('exceljs');
-
+const ReceiptCounter = require('./models/ReceiptCounter');
 
 const app = express();
 app.use(express.static('public'));
@@ -194,36 +194,39 @@ app.get('/students/add', (req, res) => {
 });
 
 // Add Student (POST)
-app.post('/students/add', (req, res) => {
-    const newStudent = new Student({
-        name: req.body.name,
-        fatherName: req.body.fatherName,
-        motherName: req.body.motherName,
-        class: req.body.class,
-        dateOfBirth: req.body.dateOfBirth,
-        mobileNumber: req.body.mobileNumber,
-        place: req.body.place,
-        aadharNumber: req.body.aadharNumber,
-        srNumber: req.body.srNumber,
-        samagraId: req.body.samagraId,
-        gender: req.body.gender,
-        category: req.body.category,
-        dateOfAdmission: req.body.dateOfAdmission,
-        rollNumber: req.body.rollNumber,
-        session: req.body.session,     
-        fees: req.body.fees,
-        section: req.body.section
+app.post('/students/add', (req, res) => { const totalFees = Number(req.body.fees); // Ensure it's a number
+
+const newStudent = new Student({
+    name: req.body.name,
+    fatherName: req.body.fatherName,
+    motherName: req.body.motherName,
+    class: req.body.class,
+    dateOfBirth: req.body.dateOfBirth,
+    mobileNumber: req.body.mobileNumber,
+    place: req.body.place,
+    aadharNumber: req.body.aadharNumber,
+    srNumber: req.body.srNumber,
+    samagraId: req.body.samagraId,
+    gender: req.body.gender,
+    category: req.body.category,
+    dateOfAdmission: req.body.dateOfAdmission,
+    rollNumber: req.body.rollNumber,
+    session: req.body.session,
+    fees: totalFees,
+    remainingFees: totalFees, // ✅ This line sets remainingFees
+    section: req.body.section
+});
+
+newStudent.save()
+    .then(() => {
+        console.log('Student added successfully!');
+        res.redirect('/students');
+    })
+    .catch((err) => {
+        console.log(err);
+        res.send('Error saving student');
     });
 
-    newStudent.save()
-        .then(() => {
-            console.log('Student added successfully!');
-            res.redirect('/students');
-        })
-        .catch((err) => {
-            console.log(err);
-            res.send('Error saving student');
-        });
 });
 
 
@@ -280,36 +283,82 @@ app.get('/students/attendance/view/:id', async (req, res) => {
 
 // fees-recipt
 
-app.get('/fees-receipt', isAdmin, (req, res) => {
-    res.render('feesReceiptForm', { loggedIn: req.session.loggedIn });
+app.get('/fees-receipt', isAdmin, async (req, res) => {
+    try {
+        const students = await Student.find({}, 'name class fatherName srNumber fees remainingFees'); // fetch required fields
+        res.render('feesReceiptForm', { students, loggedIn: req.session.loggedIn });
+    } catch (err) {
+        console.log(err);
+        res.send("Error loading receipt form");
+    }
+});
+
+// api route 
+
+app.get('/api/student-details/:id', async (req, res) => {    
+    try {    
+        const student = await Student.findById(req.params.id);    
+        if (!student) {  // if no student is found
+            return res.status(404).json({ error: 'Student not found' });
+        }
+        res.json(student);    
+    } catch (err) {    
+        console.error(err);  // logging error for debugging
+        res.status(500).json({ error: 'Server error' });    
+    }    
 });
 
 // fees receipt post
-app.post('/fees-receipt/generate', isAdmin, (req, res) => {
+app.post('/fees-receipt/generate', isAdmin, async (req, res) => {
     const {
-        srNo, studentName, fatherName, class: studentClass,
+        studentId, studentName, fatherName, class: studentClass,
         date, session, tuitionFees, transportFees, discount
     } = req.body;
 
-    const total = parseFloat(tuitionFees || 0) + parseFloat(transportFees || 0);
-    const totalAmount = total - parseFloat(discount || 0);
+    try {
+        // Receipt Number Auto-Increment
+        let counterDoc = await ReceiptCounter.findOne();
+        if (!counterDoc) {
+            counterDoc = new ReceiptCounter({ counter: 1 });
+            await counterDoc.save();
+        }
+        const receiptNo = counterDoc.counter;
 
-    res.render('receipt', {
-        srNo,
-        studentName,
-        fatherName,
-        studentClass,
-        date,
-        session,
-        tuitionFees,
-        transportFees,
-        discount,
-        total,
-        totalAmount,
-        loggedIn: req.session.loggedIn
-    });
+        // Increment for next time
+        counterDoc.counter += 1;
+        await counterDoc.save();
+
+        const total = parseFloat(tuitionFees || 0) + parseFloat(transportFees || 0);
+        const totalAmount = total - parseFloat(discount || 0);
+
+        // Update student remaining fees
+        const student = await Student.findById(studentId);
+        const oldRemaining = student.remainingFees || student.fees;
+        const newRemaining = oldRemaining - totalAmount - discount;
+        student.remainingFees = newRemaining >= 0 ? newRemaining : 0;
+        await student.save();
+
+        // Render Receipt
+        res.render('receipt', {
+            receiptNo,
+            studentName,
+            fatherName,
+            studentClass,
+            date,
+            session,
+            tuitionFees,
+            transportFees,
+            discount,
+            total,
+            totalAmount,
+            remainingFees: student.remainingFees,
+            loggedIn: req.session.loggedIn
+        });
+    } catch (err) {
+        console.log(err);
+        res.send("Error generating receipt");
+    }
 });
-
 
 // Mark Attendance (POST)
 app.post('/students/attendance/:id', async (req, res) => {
