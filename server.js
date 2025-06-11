@@ -340,10 +340,71 @@ app.post('/fees-report/view', isAdmin, async (req, res) => {
 
   try {
     const receipts = await FeeReceipt.find(filter).populate('student', 'name fatherName class remainingFees');
-    res.render('feesReportView', { receipts, loggedIn: req.session.loggedIn });
+    res.render('feesReportView', { receipts, reportType, selectedDate, startDate, endDate, loggedIn: req.session.loggedIn });
   } catch (err) {
     console.log(err);
     res.send("Error generating report");
+  }
+});
+
+// fees report excel
+
+
+app.post('/fees-report/export', isAdmin, async (req, res) => {
+  const { reportType, selectedDate, startDate, endDate } = req.body;
+
+  let filter = {};
+  if (reportType === 'daily') {
+    const date = new Date(selectedDate);
+    const nextDay = new Date(date);
+    nextDay.setDate(nextDay.getDate() + 1);
+    filter.date = { $gte: date, $lt: nextDay };
+  } else if (reportType === 'monthly') {
+    const date = new Date(selectedDate);
+    const start = new Date(date.getFullYear(), date.getMonth(), 1);
+    const end = new Date(date.getFullYear(), date.getMonth() + 1, 1);
+    filter.date = { $gte: start, $lt: end };
+  } else if (reportType === 'range') {
+    filter.date = { $gte: new Date(startDate), $lte: new Date(endDate) };
+  }
+
+  try {
+    const receipts = await FeeReceipt.find(filter).populate('student', 'name fatherName class remainingFees');
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Fees Report');
+
+    worksheet.columns = [
+      { header: 'Name', key: 'name', width: 20 },
+      { header: 'Father Name', key: 'fatherName', width: 20 },
+      { header: 'Class', key: 'class', width: 5 },
+      { header: 'Date', key: 'date', width: 15 },
+      { header: 'Paid Amount', key: 'totalAmount', width: 10 },
+      { header: 'Remaining Fees', key: 'remainingFees', width: 15 }
+    ];
+
+    receipts.forEach(receipt => {
+      worksheet.addRow({
+        name: receipt.student.name,
+        fatherName: receipt.student.fatherName,
+        class: receipt.student.class,
+        date: receipt.date.toISOString().substring(0, 10),
+        totalAmount: receipt.totalAmount,
+        remainingFees: receipt.student.remainingFees || 0 // agar added h
+      });
+    });
+
+    res.setHeader(
+      'Content-Disposition',
+      'attachment; filename="fees_report.xlsx"'
+    );
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+
+    await workbook.xlsx.write(res);
+    res.end();
+  } catch (err) {
+    console.log(err);
+    res.status(500).send("Failed to generate Excel report.");
   }
 });
 

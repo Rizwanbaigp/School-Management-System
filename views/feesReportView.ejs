@@ -53,6 +53,15 @@
 
     <button type="submit">Generate Report</button>
   </form>
+<% if (receipts.length > 0) { %>
+  <form action="/fees-report/export" method="POST">
+    <input type="hidden" name="reportType" value="<%= reportType || '' %>">
+    <input type="hidden" name="selectedDate" value="<%= selectedDate || '' %>">
+    <input type="hidden" name="startDate" value="<%= startDate || '' %>">
+    <input type="hidden" name="endDate" value="<%= endDate || '' %>">
+    <button type="submit">Export to Excel</button>
+  </form>
+<% } %>
 
   <table>
     <thead>
@@ -61,7 +70,7 @@
         <th>Father Name</th>
         <th>Class</th>
         <th>Date</th>
-        <th>Amount</th>
+        <th>Paid Amount</th>
         <th>Remaining Fees</th>
       </tr>
     </thead>
