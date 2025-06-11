@@ -6,6 +6,7 @@ const Student = require('./models/Student');
 const session = require('express-session');
 const ExcelJS = require('exceljs');
 const ReceiptCounter = require('./models/ReceiptCounter');
+const FeeReceipt = require('./models/FeeReceipt');
 
 const app = express();
 app.use(express.static('public'));
@@ -308,6 +309,44 @@ app.get('/api/student-details/:id', async (req, res) => {
     }    
 });
 
+// fees reports get 
+
+app.get('/fees-report', isAdmin, (req, res) => {
+  res.render('feesReportView', { receipts: [], loggedIn: req.session.loggedIn });
+});
+
+// fees reports post
+
+app.post('/fees-report/view', isAdmin, async (req, res) => {
+  const { reportType, selectedDate, startDate, endDate } = req.body;
+
+  let filter = {};
+  const today = new Date();
+
+  if (reportType === 'daily') {
+    const date = new Date(selectedDate);
+    date.setHours(0, 0, 0, 0);
+    const nextDay = new Date(date);
+    nextDay.setDate(nextDay.getDate() + 1);
+    filter.date = { $gte: date, $lt: nextDay };
+  } else if (reportType === 'monthly') {
+    const date = new Date(selectedDate);
+    const start = new Date(date.getFullYear(), date.getMonth(), 1);
+    const end = new Date(date.getFullYear(), date.getMonth() + 1, 1);
+    filter.date = { $gte: start, $lt: end };
+  } else if (reportType === 'range') {
+    filter.date = { $gte: new Date(startDate), $lte: new Date(endDate) };
+  }
+
+  try {
+    const receipts = await FeeReceipt.find(filter).populate('student', 'name fatherName class remainingFees');
+    res.render('feesReportView', { receipts, loggedIn: req.session.loggedIn });
+  } catch (err) {
+    console.log(err);
+    res.send("Error generating report");
+  }
+});
+
 // fees receipt post
 app.post('/fees-receipt/generate', isAdmin, async (req, res) => {
     const {
@@ -337,6 +376,18 @@ app.post('/fees-receipt/generate', isAdmin, async (req, res) => {
         const newRemaining = oldRemaining - totalAmount - discount;
         student.remainingFees = newRemaining >= 0 ? newRemaining : 0;
         await student.save();
+
+        // fees report 
+
+        const newReceipt = new FeeReceipt({
+        student: student._id,
+        date: new Date(date),
+        tuitionFees,
+        transportFees,
+        discount,
+        totalAmount
+});
+        await newReceipt.save();
 
         // Render Receipt
         res.render('receipt', {

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Fees Report Filter</title>
+  <style>
+    table {
+      border-collapse: collapse;
+      width: 90%;
+      margin: 20px auto;
+    }
+    th, td {
+      padding: 10px;
+      border: 1px solid #aaa;
+      text-align: left;
+    }
+    th {
+      background-color: #f0f0f0;
+    }
+    h2 {
+      text-align: center;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <a href="/">Home</a> 
+  <h2>Select Report Type</h2>
+  <form action="/fees-report/view" method="POST" id="reportForm">
+    <label>Report Type:</label>
+    <select name="reportType" id="reportType" onchange="toggleDateFields()">
+      <option value="daily">Daily</option>
+      <option value="monthly">Monthly</option>
+      <option value="range">Date Range</option>
+    </select>
+
+    <div id="dailyField">
+      <label>Select Date:</label>
+      <input type="date" name="selectedDate" id="dailyDate">
+    </div>
+
+    <div id="monthlyField" style="display:none;">
+      <label>Select Month:</label>
+      <input type="month" name="selectedDate" id="monthlyDate">
+    </div>
+
+    <div id="rangeField" style="display:none;">
+      <label>Start Date:</label>
+      <input type="date" name="startDate" id="startDate">
+      <label>End Date:</label>
+      <input type="date" name="endDate" id="endDate">
+    </div>
+
+    <button type="submit">Generate Report</button>
+  </form>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Father Name</th>
+        <th>Class</th>
+        <th>Date</th>
+        <th>Amount</th>
+        <th>Remaining Fees</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% if (typeof receipts !== 'undefined' && receipts.length === 0) { %>
+        <tr>
+          <td colspan="5">No records found for the selected date range.</td>
+        </tr>
+      <% } else if (typeof receipts !== 'undefined') { %>
+        <% receipts.forEach(receipt => { %>
+          <tr>
+            <td><%= receipt.student.name %></td>
+            <td><%= receipt.student.fatherName %></td>
+            <td><%= receipt.student.class %></td>
+            <td><%= receipt.date.toISOString().substring(0,10) %></td>
+            <td><%= receipt.totalAmount %></td>
+            <td><%= receipt.student.remainingFees %></td>
+          </tr>
+        <% }) %>
+      <% } %>
+    </tbody>
+  </table>  
+
+  <script>
+    function toggleDateFields() {
+      const type = document.getElementById("reportType").value;
+      const dailyField = document.getElementById("dailyField");
+      const monthlyField = document.getElementById("monthlyField");
+      const rangeField = document.getElementById("rangeField");
+
+      const dailyDate = document.getElementById("dailyDate");
+      const monthlyDate = document.getElementById("monthlyDate");
+      const startDate = document.getElementById("startDate");
+      const endDate = document.getElementById("endDate");
+
+      // Hide all fields
+      dailyField.style.display = 'none';
+      monthlyField.style.display = 'none';
+      rangeField.style.display = 'none';
+
+      // Remove required from all
+      dailyDate.required = false;
+      monthlyDate.required = false;
+      startDate.required = false;
+      endDate.required = false;
+
+      // Show and set required only for selected
+      if (type === 'daily') {
+        dailyField.style.display = 'block';
+        dailyDate.required = true;
+      } else if (type === 'monthly') {
+        monthlyField.style.display = 'block';
+        monthlyDate.required = true;
+      } else if (type === 'range') {
+        rangeField.style.display = 'block';
+        startDate.required = true;
+        endDate.required = true;
+      }
+    }
+
+    // Run on load too
+    toggleDateFields();
+  </script>
+</body>
+</html>
