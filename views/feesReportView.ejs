@@ -64,34 +64,55 @@
 <% } %>
 
   <table>
-    <thead>
+  <thead>
+    <tr>
+      <th>Receipt No</th>
+      <th>Student Name</th>
+      <th>Father Name</th>
+      <th>Class</th>
+      <th>Date</th>
+      <th>Cash</th>
+      <th>Online</th>
+      <th>UTR</th>
+      <th>Total</th>
+      <th>Remaining</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% receipts.forEach(receipt => { %>
       <tr>
-        <th>Name</th>
-        <th>Father Name</th>
-        <th>Class</th>
-        <th>Date</th>
-        <th>Paid Amount</th>
-        <th>Remaining Fees</th>
+        <td><%= receipt.receiptNo %></td>
+        <td><%= receipt.student.name %></td>
+        <td><%= receipt.student.fatherName %></td>
+        <td><%= receipt.student.class %></td>
+        <!-- <td><%= receipt.date.toISOString().substring(0, 10) %></td> -->
+         <td><%= new Date(receipt.date).toLocaleDateString('en-GB') %></td>
+        <td><%= receipt.cashAmount || 0 %></td>
+        <td><%= receipt.onlineAmount || 0 %></td>
+        <td><%= receipt.utrNumber || '-' %></td>
+        <td><%= receipt.totalAmount %></td>
+        <td><%= receipt.student.remainingFees || 0 %></td>
       </tr>
-    </thead>
-    <tbody>
-      <% if (typeof receipts !== 'undefined' && receipts.length === 0) { %>
-        <tr>
-          <td colspan="6">No records found for the selected date range.</td>
-        </tr>
-      <% } else if (typeof receipts !== 'undefined') { %>
-        <% receipts.forEach(receipt => { %>
-          <tr>
-            <td><%= receipt.student.name %></td>
-            <td><%= receipt.student.fatherName %></td>
-            <td><%= receipt.student.class %></td>
-            <td><%= receipt.date.toISOString().substring(0,10) %></td>
-            <td><%= receipt.totalAmount %></td>
-            <td><%= receipt.student.remainingFees %></td>
-          </tr>
-        <% }) %>
-      <% } %>
-    </tbody>
+    <% }) %>
+    <%
+  let totalCash = 0;
+  let totalOnline = 0;
+  receipts.forEach(r => {
+    totalCash += r.cashAmount || 0;
+    totalOnline += r.onlineAmount || 0;
+  });
+%>
+<table style="margin-top: 40px;">
+  <tr>
+    <th>Total Cash Collection</th>
+    <td>₹<%= totalCash %></td>
+  </tr>
+  <tr>
+    <th>Total Online Collection</th>
+    <td>₹<%= totalOnline %></td>
+  </tr>
+
+</tbody>
   </table>  
 
   <script>

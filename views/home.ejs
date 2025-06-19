@@ -4,6 +4,41 @@
     <meta charset="UTF-8">
     <title>School Management System</title>
     <link rel="stylesheet" href="/styles.css">
+    <style>
+        #banner{
+            height: 400px;
+            width: 100%;
+            /* position: relative;
+            /* left: -1100px; */
+            animation: moving 4s 0s ease infinite; */
+        }
+        img{
+            height: 400px;
+            width: 100%;
+        }
+        h1{
+            animation: came 1s 0s ease-in infinite;
+        }
+        @keyframes came {
+            0%{
+                opacity: 0;
+            }
+            100%{
+                opacity: 1;
+            }
+        }
+        /* @keyframes moving {
+            0%{
+                left: -1100px;
+            }
+            50%{
+                left: 0;
+            }
+            100%{
+                left: -1100px;
+            }
+        } */
+    </style>
 </head>
 <body>
     
@@ -23,7 +58,12 @@
         <% } %>
         
     </nav>
-<h1>Welcome to School Management System</h1>
+<h1>Welcome to Little Flower Playgroup</h1>
+<div id="banner">
+    <img src="/images/banner.jpeg" alt="">
+</div>
+
+
     
 
 </body>

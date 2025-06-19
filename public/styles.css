@@ -41,6 +41,10 @@ form {
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
+#dform{
+    margin: 0;
+    padding: 0;
+}
 input[type="text"], input[type="password"], input[type="number"], input[type="date"], button {
     width: 100%;
     padding: 10px;
@@ -72,7 +76,7 @@ table {
 }
 
 table, th, td {
-    border: 1px solid #ddd;
+    border: 1px solid #000000;
 }
 
 th, td {

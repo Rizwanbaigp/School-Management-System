@@ -45,7 +45,7 @@
 <th>Father Name</th>
 <th>Mother Name</th>
 <th>Class</th>
-<th>DOB</th>
+<th>Date of birth</th>
 <th>Mobile</th>
 <th>Place</th>
 <th>Aadhar No</th>
@@ -65,7 +65,14 @@
 <td><%= student.fatherName %></td>
 <td><%= student.motherName %></td>
 <td><%= student.class %></td>
-<td><%= student.dateOfBirth ? new Date(student.dateOfBirth).toISOString().substring(0,10) : '' %></td>
+<td>
+  <% if (student.dateOfBirth) {
+    const dob = new Date(student.dateOfBirth); %>
+    <%= ("0" + dob.getDate()).slice(-2) %>-<%= ("0" + (dob.getMonth() + 1)).slice(-2) %>-<%= dob.getFullYear() %>
+  <% } else { %>
+    —
+  <% } %>
+</td>
 <td><%= student.mobileNumber %></td>
 <td><%= student.place %></td>
 <td><%= student.aadharNumber %></td>
@@ -73,14 +80,21 @@
 <td><%= student.samagraId %></td>
 <td><%= student.gender %></td>
 <td><%= student.category %></td>
-<td><%= student.dateOfAdmission ? new Date(student.dateOfAdmission).toISOString().substring(0,10) : '' %></td>
+<td>
+  <% if (student.dateOfAdmission) {
+    const doa = new Date(student.dateOfAdmission); %>
+    <%= ("0" + doa.getDate()).slice(-2) %>-<%= ("0" + (doa.getMonth() + 1)).slice(-2) %>-<%= doa.getFullYear() %>
+  <% } else { %>
+    —
+  <% } %>
+</td>
 <td><%= student.session %></td>
 <td><%= student.remainingFees %></td>
                     <!-- <td><a href="/students/attendance/view/<%= student._id %>">View Attendance</a></td> -->
 
                     <td>
                         <!-- Delete Button -->
-                        <form action="/students/delete/<%= student._id %>" method="POST">
+                        <form action="/students/delete/<%= student._id %>" method="POST" id="dform">
                             <button type="submit" id="del">Delete</button>
                         </form>
                         <!-- Update Button -->

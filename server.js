@@ -340,7 +340,8 @@ app.post('/fees-report/view', isAdmin, async (req, res) => {
 
   try {
     const receipts = await FeeReceipt.find(filter).populate('student', 'name fatherName class remainingFees');
-    res.render('feesReportView', { receipts, reportType, selectedDate, startDate, endDate, loggedIn: req.session.loggedIn });
+    const validReceipts = receipts.filter(r => r.student !== null);
+    res.render('feesReportView', { receipts: validReceipts, reportType, selectedDate, startDate, endDate, loggedIn: req.session.loggedIn });
   } catch (err) {
     console.log(err);
     res.send("Error generating report");
@@ -375,22 +376,31 @@ app.post('/fees-report/export', isAdmin, async (req, res) => {
     const worksheet = workbook.addWorksheet('Fees Report');
 
     worksheet.columns = [
+      { header: 'Receipt No', key: 'receiptNo', width: 10 },
       { header: 'Name', key: 'name', width: 20 },
       { header: 'Father Name', key: 'fatherName', width: 20 },
-      { header: 'Class', key: 'class', width: 5 },
+      { header: 'Class', key: 'class', width: 10 },
       { header: 'Date', key: 'date', width: 15 },
-      { header: 'Paid Amount', key: 'totalAmount', width: 10 },
-      { header: 'Remaining Fees', key: 'remainingFees', width: 15 }
+      { header: 'Cash', key: 'cashAmount', width: 10 },
+      { header: 'Online', key: 'onlineAmount', width: 10 },
+      { header: 'UTR', key: 'utrNumber', width: 20 },
+      { header: 'Total Paid', key: 'totalAmount', width: 15 },
+      { header: 'Remaining', key: 'remainingFees', width: 15 }
     ];
 
     receipts.forEach(receipt => {
+      const student = receipt.student || {};
       worksheet.addRow({
-        name: receipt.student.name,
-        fatherName: receipt.student.fatherName,
-        class: receipt.student.class,
-        date: receipt.date.toISOString().substring(0, 10),
-        totalAmount: receipt.totalAmount,
-        remainingFees: receipt.student.remainingFees || 0 // agar added h
+        receiptNo: receipt.receiptNo || '',
+        name: student.name || '',
+        fatherName: student.fatherName || '',
+        class: student.class || '',
+        date: receipt.date ? receipt.date.toISOString().substring(0, 10) : '',
+        cashAmount: receipt.cashAmount || 0,
+        onlineAmount: receipt.onlineAmount || 0,
+        utrNumber: receipt.utrNumber || '',
+        totalAmount: receipt.totalAmount || 0,
+        remainingFees: student.remainingFees || 0
       });
     });
 
@@ -409,67 +419,87 @@ app.post('/fees-report/export', isAdmin, async (req, res) => {
 });
 
 // fees receipt post
+
 app.post('/fees-receipt/generate', isAdmin, async (req, res) => {
-    const {
-        studentId, studentName, fatherName, class: studentClass,
-        date, session, tuitionFees, transportFees, discount
-    } = req.body;
+  const {
+    studentId, studentName, fatherName, class: studentClass,
+    date, session, tuitionFees, transportFees, discount,
+    isCash, cashAmount, isOnline, onlineAmount, utrNumber, remark
+  } = req.body;
 
-    try {
-        // Receipt Number Auto-Increment
-        let counterDoc = await ReceiptCounter.findOne();
-        if (!counterDoc) {
-            counterDoc = new ReceiptCounter({ counter: 1 });
-            await counterDoc.save();
-        }
-        const receiptNo = counterDoc.counter;
-
-        // Increment for next time
-        counterDoc.counter += 1;
-        await counterDoc.save();
-
-        const total = parseFloat(tuitionFees || 0) + parseFloat(transportFees || 0);
-        const totalAmount = total - parseFloat(discount || 0);
-
-        // Update student remaining fees
-        const student = await Student.findById(studentId);
-        const oldRemaining = student.remainingFees || student.fees;
-        const newRemaining = oldRemaining - totalAmount - discount;
-        student.remainingFees = newRemaining >= 0 ? newRemaining : 0;
-        await student.save();
-
-        // fees report 
-
-        const newReceipt = new FeeReceipt({
-        student: student._id,
-        date: new Date(date),
-        tuitionFees,
-        transportFees,
-        discount,
-        totalAmount
-});
-        await newReceipt.save();
-
-        // Render Receipt
-        res.render('receipt', {
-            receiptNo,
-            studentName,
-            fatherName,
-            studentClass,
-            date,
-            session,
-            tuitionFees,
-            transportFees,
-            discount,
-            total,
-            totalAmount,
-            remainingFees: student.remainingFees,
-            loggedIn: req.session.loggedIn
-        });
-    } catch (err) {
-        console.log(err);
-        res.send("Error generating receipt");
+  try {
+    // Receipt Number Auto-Increment
+    let counterDoc = await ReceiptCounter.findOne();
+    if (!counterDoc) {
+      counterDoc = new ReceiptCounter({ counter: 1 });
+      await counterDoc.save();
     }
+    const receiptNo = counterDoc.counter;
+    counterDoc.counter += 1;
+    await counterDoc.save();
+
+    // Total Calculation
+    const total = parseFloat(tuitionFees || 0) + parseFloat(transportFees || 0);
+    const totalAmount = total - parseFloat(discount || 0);
+
+    // Update remaining fees
+    const student = await Student.findById(studentId);
+    const oldRemaining = student.remainingFees || student.fees;
+    const newRemaining = oldRemaining - totalAmount;
+    student.remainingFees = newRemaining >= 0 ? newRemaining : 0;
+    await student.save();
+
+    // Save Receipt
+    const newReceipt = new FeeReceipt({
+      student: student._id,
+      date: new Date(date),
+      tuitionFees,
+      transportFees,
+      discount,
+      totalAmount,
+      receiptNo,
+      isCash,
+      cashAmount: isCash === 'yes' ? parseFloat(cashAmount || 0) : 0,
+      isOnline,
+      onlineAmount: isOnline === 'yes' ? parseFloat(onlineAmount || 0) : 0,
+      utrNumber: isOnline === 'yes' ? utrNumber : '',
+      remark
+    });
+    await newReceipt.save();
+
+    // Render Receipt
+    res.render('receipt', {
+      receiptNo,
+      studentName,
+      fatherName,
+      studentClass,
+      date,
+      session,
+      tuitionFees,
+      transportFees,
+      discount,
+      total,
+      totalAmount,
+      remainingFees: student.remainingFees,
+      isCash,
+      cashAmount,
+      isOnline,
+      onlineAmount,
+      utrNumber,
+      remark,
+      loggedIn: req.session.loggedIn,
+       isCash: req.body.isCash,
+    cashAmount: req.body.cashAmount,
+    isOnline: req.body.isOnline,
+    onlineAmount: req.body.onlineAmount,
+    utrNumber: req.body.utrNumber,
+    remark: req.body.remark
+    });
+
+  } catch (err) {
+    console.log(err);
+    res.send("Error generating receipt");
+  }
 });
 
 // Mark Attendance (POST)

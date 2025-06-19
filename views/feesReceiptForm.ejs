@@ -41,7 +41,34 @@
         <label>Session:</label>
         <input type="text" name="session" required><br>
 
-        <label>Tuition Fees:</label>
+        
+        <label>Cash Payment:</label>
+<select name="isCash" id="isCash" onchange="toggleCashAmount()">
+  <option value="no">No</option>
+  <option value="yes">Yes</option>
+</select>
+
+<div id="cashAmountDiv" style="display: none;">
+  <label>Cash Amount:</label>
+  <input type="number" name="cashAmount" />
+</div>
+
+<label>Online Payment:</label>
+<select name="isOnline" id="isOnline" onchange="toggleOnlineFields()">
+  <option value="no">No</option>
+  <option value="yes">Yes</option>
+</select>
+
+<div id="onlineDetails" style="display: none;">
+  <label>Online Amount:</label>
+  <input type="number" name="onlineAmount" />
+  
+  <label>UTR Number:</label>
+  <input type="text" name="utrNumber" />
+</div>
+
+<br><br>
+        <label>Payble Amount:</label>
         <input type="number" name="tuitionFees" required><br>
 
         <label>Transport Fees:</label>
@@ -49,6 +76,8 @@
 
         <label>Discount:</label>
         <input type="number" name="discount"><br>
+        <label>Remark:</label>
+        <input type="text" name="remark" /><br>
 
         <button type="submit">Generate Receipt</button>
     </form>
@@ -70,6 +99,19 @@
             alert('Unable to fetch student details');
         }
     }
+    function toggleCashAmount() {
+    const isCash = document.getElementById('isCash').value;
+    document.getElementById('cashAmountDiv').style.display = (isCash === 'yes') ? 'block' : 'none';
+  }
+
+  function toggleOnlineFields() {
+    const isOnline = document.getElementById('isOnline').value;
+    document.getElementById('onlineDetails').style.display = (isOnline === 'yes') ? 'block' : 'none';
+  }
+
+  // run on page load also
+  toggleCashAmount();
+  toggleOnlineFields();
 </script>
 </body>
 </html>
